@@ -59,7 +59,8 @@ public class DependencyTrackPublisher extends ThresholdCapablePublisher implemen
 
     private String projectId;
     private String projectName;
-    private String projectVersion;
+    private final String projectVersion;
+    private final boolean isProjectNameSpecified;
     private final String artifact;
     private final String artifactType;
     private final boolean isScanResult;
@@ -67,15 +68,27 @@ public class DependencyTrackPublisher extends ThresholdCapablePublisher implemen
 
     // Fields in config.jelly must match the parameter names
     @DataBoundConstructor
-    public DependencyTrackPublisher(final String artifact, final String artifactType, final boolean synchronous) {
+    public DependencyTrackPublisher(final boolean isProjectNameSpecified, final String projectName, final String projectVersion, final String artifact, final String artifactType, final boolean synchronous) {
+
+        if(isProjectNameSpecified && StringUtils.isNotBlank(projectName)) {
+
+            this.isProjectNameSpecified = true;
+            this.projectName = projectName;
+            this.projectVersion = StringUtils.stripToEmpty(projectVersion);
+
+        } else {
+
+            this.isProjectNameSpecified = false;
+            this.projectName = null;
+            this.projectVersion = null;
+        }
+
         this.artifact = artifact;
         this.artifactType = artifactType;
         this.isScanResult = artifactType == null || !"bom".equals(artifactType);
         this.synchronous = synchronous;
 
         this.projectId = null;
-        this.projectName = null;
-        this.projectVersion = null;
     }
 
     /**
@@ -84,23 +97,12 @@ public class DependencyTrackPublisher extends ThresholdCapablePublisher implemen
      **/
     @DataBoundSetter
     public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
 
-    /**
-     * Sets the project name to upload to. This is a per-build config item.
-     **/
-    @DataBoundSetter
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    /**
-     * Sets the project name to upload to. This is a per-build config item.
-     **/
-    @DataBoundSetter
-    public void setProjectVersion(String projectVersion) {
-        this.projectVersion = projectVersion;
+        if(StringUtils.isBlank(projectName) && StringUtils.isNotBlank(projectId)) {
+            this.projectId = projectId;
+        } else {
+            this.projectId = null;
+        }
     }
 
     /**
@@ -173,6 +175,9 @@ public class DependencyTrackPublisher extends ThresholdCapablePublisher implemen
         logger.log(Messages.Builder_Publishing() + " - " + getDescriptor().getDependencyTrackUrl());
 
         final String projectId = build.getEnvironment(listener).expand(this.projectId);
+        final String projectName = build.getEnvironment(listener).expand(this.projectName);
+        final String projectVersion = build.getEnvironment(listener).expand(this.projectVersion);
+
         final String artifact = build.getEnvironment(listener).expand(this.artifact);
         final boolean autoCreateProject = getDescriptor().isDependencyTrackAutoCreateProjects();
 

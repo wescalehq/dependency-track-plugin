@@ -20,6 +20,16 @@ limitations under the License.
         <f:select id="projectId"/>
     </f:entry>
 
+    <f:optionalBlock inline="true" field="isProjectNameSpecified" title="${%projectNameAndVersion}" checked="${instance.projectName != null}">
+        <f:entry title="${%projectName}" field="projectName" help="/plugin/dependency-track/help-dt-project-name.html">
+            <f:textbox id="projectName"/>
+        </f:entry>
+
+        <f:entry title="${%projectVersion}" field="projectVersion" help="/plugin/dependency-track/help-dt-project-version.html">
+            <f:textbox id="projectVersion" />
+        </f:entry>
+    </f:optionalBlock>
+
     <f:entry title="${%artifact}" field="artifact" help="/plugin/dependency-track/help-dt-artifact.html">
         <f:textbox id="artifact"/>
     </f:entry>
